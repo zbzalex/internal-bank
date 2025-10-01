@@ -72,12 +72,16 @@ export class DefaultStateManager implements StateManager {
     return address in this.accounts ? this.accounts[address] : 0
   }
 
-  async setBalance(
+  async deposit(
     address: string,
-    newBalance: number
+    value: number
   ): Promise<number> {
 
+    const balance = this.accounts[address]
+    const newBalance = balance + value
+
     this.accounts[address] = newBalance
+    
     this._commit();
 
     return newBalance;

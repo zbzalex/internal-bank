@@ -40,8 +40,10 @@ export class Controller {
           throw new Error("Invalid hash")
         }
 
-        const balanceFrom = await this.stateManager.getBalance(transaction.from);
-        const balanceTo = await this.stateManager.getBalance(transaction.to);
+        const balanceFrom =
+          await this.stateManager.getBalance(transaction.from);
+        const balanceTo =
+          await this.stateManager.getBalance(transaction.to);
         if (transaction.amount < 0) {
           throw new Error("Invalid amount");
         }
@@ -50,14 +52,8 @@ export class Controller {
           throw new Error("Not enough");
         }
 
-        await this.stateManager.setBalance(
-          transaction.from,
-          balanceFrom - transaction.amount
-        );
-        await this.stateManager.setBalance(
-          transaction.to,
-          balanceTo + transaction.amount
-        );
+        await this.stateManager.deposit(transaction.from, -transaction.amount);
+        await this.stateManager.deposit(transaction.to, transaction.amount);
 
         const newStateHash = await this.stateManager.computeStateHash()
 

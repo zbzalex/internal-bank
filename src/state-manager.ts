@@ -6,6 +6,6 @@ export interface StateManager {
   queryLastTransaction(): Promise<Transaction>;
   addTransaction(transaction: Transaction): Promise<void>;
   getBalance(address: string): Promise<number>;
-  setBalance(address: string, newBalance: number): Promise<number>;
+  deposit(address: string, value: number): Promise<number>;
   computeStateHash(): Promise<string>;
 }
