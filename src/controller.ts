@@ -23,9 +23,9 @@ export class Controller {
     let i = 0;
     let invokeQueue = this.pendingTransactions.map(
       (transaction) => async (next: () => Promise<void>) => {
-        console.log(
-          "execute transaction @", transaction
-        )
+        // console.log(
+        //   "execute transaction @", transaction
+        // )
 
         const lastTransaction = await this.stateManager.queryLastTransaction()
         const stateHash = await this.stateManager.computeStateHash()
@@ -69,9 +69,9 @@ export class Controller {
 
         this.stateManager.addTransaction(transaction)
 
-        console.log(
-          "new state @", transaction
-        )
+        // console.log(
+        //   "new state @", transaction
+        // )
 
         await next();
       }
