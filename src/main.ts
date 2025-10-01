@@ -29,21 +29,21 @@ const stateManager = new DefaultStateManager(
 
 const ctl = new Controller(stateManager);
 
-const tx1 = createTransaction("a", "b", 11)
-const tx2 = createTransaction("a", "b", 20)
+const tx1 = createTransaction("reserve1", "b", 11)
+const tx2 = createTransaction("reserve1", "b", 20)
 
 ctl.addTransaction(tx1)
 ctl.addTransaction(tx2)
 
 ctl.commit().then(async () => {
 
-  const balance1 = await stateManager.queryAccountByAddress("a")
+  const balance1 = await stateManager.getBalance("a")
 
   console.log(
     "balance a @", balance1,
   )
 
-  const balance2 = await stateManager.queryAccountByAddress("b")
+  const balance2 = await stateManager.getBalance("b")
 
   console.log(
     "balance b @", balance2
@@ -56,11 +56,6 @@ ctl.commit().then(async () => {
   console.log(
     "tx2 @", tx2
   )
-
-  console.log(
-    await stateManager.queryAccounts()
-  )
-
 });
 
 // const build = async () => {

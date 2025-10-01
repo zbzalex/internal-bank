@@ -1,11 +1,11 @@
-import { Account } from "./account";
 import { Transaction } from "./transaction";
 import { StateManager } from "./state-manager";
 import fs from "node:fs"
+import { hash } from "./hash";
 
 export class DefaultStateManager implements StateManager {
   transactions: Array<Transaction>;
-  accounts: Array<Account>;
+  accounts: Record<string, number>;
 
   constructor(
     private readonly dataFile: string
@@ -19,7 +19,7 @@ export class DefaultStateManager implements StateManager {
 
   private _load(): {
     transactions: Transaction[];
-    accounts: Account[]
+    accounts: Record<string, number>
   } {
 
     const data: string = fs.readFileSync(this.dataFile, {
@@ -28,7 +28,7 @@ export class DefaultStateManager implements StateManager {
 
     const json = JSON.parse(data)
     const transactions: Array<Transaction> = json.transactions
-    const accounts: Array<Account> = json.accounts
+    const accounts: Record<string, number> = json.accounts
 
     return {
       transactions,
@@ -68,42 +68,22 @@ export class DefaultStateManager implements StateManager {
     return this.transactions[this.transactions.length - 1];
   }
 
-  async queryAccountByAddress(address: string): Promise<number> {
-    const account = this.accounts.find(
-      (account) => account.address === address
-    );
-
-    return account ? account.balance : 0;
+  async getBalance(address: string): Promise<number> {
+    return address in this.accounts ? this.accounts[address] : 0
   }
 
-  async queryAccounts(): Promise<Array<Account>> {
-    return this.accounts;
-  }
-
-  async setAccountBalance(
+  async setBalance(
     address: string,
     newBalance: number
   ): Promise<number> {
-    let index = this.accounts.findIndex(
-      (account) => account.address === address
-    );
-    if (index === -1) {
-      this.accounts = [
-        ...this.accounts,
-        {
-          address,
-          balance: newBalance,
-        },
-      ];
-    } else {
-      this.accounts[index] = {
-        address,
-        balance: newBalance,
-      };
-    }
 
+    this.accounts[address] = newBalance
     this._commit();
 
     return newBalance;
+  }
+
+  async computeStateHash(): Promise<string> {
+    return hash(JSON.stringify(this.accounts))
   }
 }

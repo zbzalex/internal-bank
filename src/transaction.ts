@@ -1,3 +1,5 @@
+import { hash } from "./hash";
+
 export interface Transaction {
   index: number
   from: string;
@@ -27,3 +29,15 @@ export const createTransaction = (
     stateHash: ""
   }
 };
+
+export const computeTransactionHash = (transaction: Transaction): string => {
+  return hash(JSON.stringify({
+    index: transaction.index,
+    from: transaction.from,
+    to: transaction.to,
+    amount: transaction.amount,
+    prevHash: transaction.prevHash,
+    prevStateHash: transaction.prevStateHash,
+    stateHash: transaction.stateHash,
+  }))
+}

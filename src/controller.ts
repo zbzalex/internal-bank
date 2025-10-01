@@ -1,6 +1,6 @@
 import { hash } from "./hash";
 import { StateManager } from "./state-manager";
-import { Transaction } from "./transaction";
+import { computeTransactionHash, Transaction } from "./transaction";
 
 export class Controller {
   stateManager: StateManager;
@@ -28,22 +28,20 @@ export class Controller {
         )
 
         const lastTransaction = await this.stateManager.queryLastTransaction()
-        const state = await this.stateManager.queryAccounts()
-        const stateHash = hash(JSON.stringify(state.map(
-          account => [
-            account.address.padStart(32, "0"),
-            String(account.balance).padStart(32, "0")
-          ]
-        )))
+        const stateHash = await this.stateManager.computeStateHash()
 
         if (lastTransaction.stateHash !== stateHash) {
-          throw new Error("State hash mismatch")
+          throw new Error("Invalid state hash")
         }
 
-        const balanceFrom = await this.stateManager.queryAccountByAddress(
-          transaction.from
-        );
-        const balanceTo = await this.stateManager.queryAccountByAddress(transaction.to);
+        const hash_ = computeTransactionHash(lastTransaction)
+
+        if (lastTransaction.hash !== hash_) {
+          throw new Error("Invalid hash")
+        }
+
+        const balanceFrom = await this.stateManager.getBalance(transaction.from);
+        const balanceTo = await this.stateManager.getBalance(transaction.to);
         if (transaction.amount < 0) {
           throw new Error("Invalid amount");
         }
@@ -52,35 +50,22 @@ export class Controller {
           throw new Error("Not enough");
         }
 
-        await this.stateManager.setAccountBalance(
+        await this.stateManager.setBalance(
           transaction.from,
           balanceFrom - transaction.amount
         );
-        await this.stateManager.setAccountBalance(
+        await this.stateManager.setBalance(
           transaction.to,
           balanceTo + transaction.amount
         );
 
-        const newState = await this.stateManager.queryAccounts()
-        const newStateHash = hash(JSON.stringify(newState.map(
-          account => [
-            account.address.padStart(32, "0"),
-            String(account.balance).padStart(32, "0")
-          ]
-        )))
+        const newStateHash = await this.stateManager.computeStateHash()
 
         transaction.index = lastTransaction.index + 1
         transaction.prevHash = lastTransaction.hash
         transaction.prevStateHash = lastTransaction.stateHash
         transaction.stateHash = newStateHash
-        transaction.hash = hash(JSON.stringify({
-          from: transaction.from,
-          to: transaction.to,
-          amount: transaction.amount,
-          prevHash: transaction.prevHash,
-          prevStateHash: transaction.prevStateHash,
-          stateHash: transaction.stateHash,
-        }))
+        transaction.hash = computeTransactionHash(transaction)
 
         this.stateManager.addTransaction(transaction)
 
