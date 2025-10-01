@@ -42,9 +42,8 @@ export class Controller {
 
         const balanceFrom =
           await this.stateManager.getBalance(transaction.from);
-        const balanceTo =
-          await this.stateManager.getBalance(transaction.to);
-        if (transaction.amount < 0) {
+        
+        if (transaction.amount <= 0) {
           throw new Error("Invalid amount");
         }
 
@@ -82,5 +81,7 @@ export class Controller {
     };
 
     await next();
+
+    this.pendingTransactions = []
   }
 }

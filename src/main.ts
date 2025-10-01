@@ -29,7 +29,7 @@ const stateManager = new DefaultStateManager(
 
 const ctl = new Controller(stateManager);
 
-const tx1 = createTransaction("reserve1", "b", 10)
+const tx1 = createTransaction("reserve1", "b", 1)
 // const tx2 = createTransaction("reserve1", "b", 20)
 
 ctl.addTransaction(tx1)
