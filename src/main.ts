@@ -8,9 +8,8 @@ import axios from "axios";
 import _ from "underscore";
 import dotenv from "dotenv";
 import { createTransaction, Transaction } from "./transaction";
-import { Blockchain } from "./blockchain";
-import { genesisBlock } from "./genesis-block";
-import { MemoryBank } from "./memory-bank";
+import { DefaultStateManager } from "./default-state-manager";
+import { Controller } from "./controller";
 
 dotenv.config({
   path: ".env",
@@ -24,39 +23,42 @@ dotenv.config({
 //   port: Number(process.env.REDIS_PORT) || 6379,
 // });
 
-const bank = new MemoryBank(
-  [
-    genesisBlock,
-    //
-  ],
-  [
-    {
-      address: "a",
-      balance: 100,
-    },
-  ]
+const stateManager = new DefaultStateManager(
+  __dirname + "/../data.json"
 );
 
-const blockchain = new Blockchain(bank);
+const ctl = new Controller(stateManager);
 
-[
-  createTransaction("a", "b", 10),
-  createTransaction("a", "b", 50),
-  //
-].map((transaction) => blockchain.addTransaction(transaction));
+const tx1 = createTransaction("a", "b", 11)
+const tx2 = createTransaction("a", "b", 20)
 
-blockchain.commit().then(async () => {
+ctl.addTransaction(tx1)
+ctl.addTransaction(tx2)
 
-  const aBalance = await bank.queryAccountByAddress("a")
+ctl.commit().then(async () => {
+
+  const balance1 = await stateManager.queryAccountByAddress("a")
 
   console.log(
-    "balance a @", aBalance,
+    "balance a @", balance1,
   )
 
-  const bBalance = await bank.queryAccountByAddress("b")
+  const balance2 = await stateManager.queryAccountByAddress("b")
 
   console.log(
-    "balance b @", bBalance
+    "balance b @", balance2
+  )
+
+  console.log(
+    "tx1 @", tx1
+  )
+
+  console.log(
+    "tx2 @", tx2
+  )
+
+  console.log(
+    await stateManager.queryAccounts()
   )
 
 });
